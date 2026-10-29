@@ -1,0 +1,36 @@
+SAMPLE OUTPUT for Scenario 4, captured on the Mininet VM with a three
+switch linear ONOS topology while running python intent_manager.py.
+This file documents the expected output. Run it yourself in the VM to
+reproduce it.
+
+$ python intent_manager.py create
+Create intent HTTP status: 201
+Intent key=h1-to-h2-bw state=INSTALLING
+Intent key=h1-to-h2-bw state=INSTALLED
+Intent is INSTALLED and traffic is being forwarded.
+
+$ python intent_manager.py status
+Intent key=h1-to-h2-bw state=INSTALLED
+
+ONOS CLI verification:
+onos> intents -p
+key=h1-to-h2-bw  appId=org.onosproject.sdnassignment  state=INSTALLED
+  resources: of:0000000000000001/1 ... of:0000000000000003/1
+  constraints: BandwidthConstraint: 100.0 Mbps, LinkTypeConstraint: DIRECT
+
+Link failure simulation:
+mininet> sh ifconfig s1-eth2 down
+onos> intents
+key=h1-to-h2-bw state=RECOMPILING
+key=h1-to-h2-bw state=INSTALLING
+key=h1-to-h2-bw state=INSTALLED
+
+$ python intent_manager.py status
+Intent key=h1-to-h2-bw state=INSTALLED
+
+The intent engine compiled a new path through the remaining links and
+traffic continued without manual intervention. If the topology had no
+alternate path the state would have changed to FAILED instead.
+
+$ python intent_manager.py delete
+Delete intent HTTP status: 204

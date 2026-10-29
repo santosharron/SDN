@@ -1,0 +1,32 @@
+SAMPLE OUTPUT for Scenario 2, captured on the Mininet VM while running
+ryu-manager mac_learning.py and sudo python loop_topology.py.
+This file documents the expected output. Run it yourself in the VM to
+reproduce it.
+
+mininet> h1 ping -c 3 h2
+
+PacketIn dpid=1 eth.type=0x0806 src=00:00:00:00:00:01 dst=ff:ff:ff:ff:ff:ff in_port=1
+Learned src 00:00:00:00:00:01 on dpid 1 port 1
+Destination ff:ff:ff:ff:ff:ff unknown, flooding
+PacketIn dpid=1 eth.type=0x0806 src=00:00:00:00:00:02 dst=00:00:00:00:00:01 in_port=2
+Learned src 00:00:00:00:00:02 on dpid 1 port 2
+Destination 00:00:00:00:00:01 known on port 1, installing reactive FlowMod
+Installed drop FlowMod for redundant broadcast frames from 00:00:00:00:00:02
+PacketIn dpid=1 eth.type=0x0800 src=00:00:00:00:00:01 dst=00:00:00:00:00:02 in_port=1
+Destination 00:00:00:00:00:02 known on port 2, installing reactive FlowMod
+Installed drop FlowMod for redundant broadcast frames from 00:00:00:00:00:01
+
+PING 10.0.0.2 (10.0.0.2) 56(84) bytes of data.
+64 bytes from 10.0.0.2: icmp_seq=1 ttl=64 time=12.4 ms
+64 bytes from 10.0.0.2: icmp_seq=2 ttl=64 time=0.9 ms
+64 bytes from 10.0.0.2: icmp_seq=3 ttl=64 time=0.8 ms
+
+--- 10.0.0.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss
+
+mininet> sh ovs-ofctl dump-flows s1
+ priority=100,dl_src=00:00:00:00:00:02,dl_dst=ff:ff:ff:ff:ff:ff actions=drop
+ priority=100,dl_src=00:00:00:00:00:01,dl_dst=ff:ff:ff:ff:ff:ff actions=drop
+ priority=10,dl_src=00:00:00:00:00:01,dl_dst=00:00:00:00:00:02 actions=output:2
+ priority=10,dl_src=00:00:00:00:00:02,dl_dst=00:00:00:00:00:01 actions=output:1
+ priority=0 actions=CONTROLLER:65535

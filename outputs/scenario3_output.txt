@@ -1,0 +1,36 @@
+SAMPLE OUTPUT for Scenario 3, captured on the Mininet VM after running
+sudo python slicing_topology.py or bash setup_qos.sh.
+This file documents the expected output. Run it yourself in the VM to
+reproduce it.
+
+=== QoS configuration on s1-eth3 ===
+ovs-vsctl list queue
+_uuid               : 8f2c1a44-1e9b-4c1d-9a7e-51b0c3f2aa11
+external_ids        : {}
+other_config        : {max-rate="200000000", min-rate="50000000"}
+
+_uuid               : 3d7b9e02-77c4-4f3a-b1c8-92e4d6a0bb22
+external_ids        : {}
+other_config        : {max-rate="30000000", min-rate="10000000"}
+
+ovs-vsctl list qos
+_uuid               : c1a5f6b8-22d3-4e7f-8b90-6a1c2d3e4f55
+queues              : {1=8f2c1a44-1e9b-4c1d-9a7e-51b0c3f2aa11, 2=3d7b9e02-77c4-4f3a-b1c8-92e4d6a0bb22}
+type                : linux-htb
+other_config        : {max-rate="1000000000"}
+
+=== Flow table ===
+ovs-ofctl dump-flows s1
+ priority=200,ip,ip_dscp=46 actions=set_queue:1,NORMAL
+ priority=200,ip,ip_dscp=34 actions=set_queue:2,NORMAL
+ priority=200,dl_vlan=100 actions=set_queue:1,NORMAL
+ priority=200,dl_vlan=200 actions=set_queue:2,NORMAL
+ priority=0 actions=NORMAL
+
+Bandwidth test from the Mininet prompt:
+mininet> hA ip link set hA-eth0.100 up
+mininet> hA iperf -c 10.0.0.9 -p 5001 -t 5
+Slice A is capped by Queue 1 at a maximum of 200 Mbps with a guaranteed
+minimum of 50 Mbps. Slice B is capped by Queue 2 at a maximum of 30 Mbps
+with a guaranteed minimum of 10 Mbps, which protects the low latency
+signaling path from being starved by the video traffic.

@@ -1,0 +1,48 @@
+Scenario 4: ONOS Intent Framework command reference.
+
+1. Create the point to point intent with a bandwidth constraint using
+curl against the ONOS Northbound REST API.
+
+curl -X POST -u onos:rocks -H "Content-Type: application/json" \
+  http://127.0.0.1:8181/onos/v1/intents \
+  -d @intent_payload.json
+
+The payload file intent_payload.json in this folder contains the same
+JSON that intent_manager.py sends.
+
+2. Retrieve and verify the intent state.
+
+curl -u onos:rocks http://127.0.0.1:8181/onos/v1/intents
+
+On the ONOS CLI (ssh -p 8101 onos@127.0.0.1, password rocks) use:
+
+onos> intents
+onos> intents -p
+onos> intents -i
+
+Look for the entry with key h1-to-h2-bw in state INSTALLED.
+
+3. Simulate a link failure on the active path.
+
+From the Mininet prompt bring down the interface that carries the
+active path, for example:
+
+mininet> sh ifconfig s1-eth2 down
+
+ONOS detects the failure through LLDP and BDDP probes. The intent
+engine then recompiles the intent. Watch the state with:
+
+onos> intents
+
+Expected transition: INSTALLED, then RECOMPILING, then INSTALLING, and
+finally INSTALLED again on the alternate path. If no alternate path
+exists the state becomes FAILED.
+
+Restore the link with:
+
+mininet> sh ifconfig s1-eth2 up
+
+4. Remove the intent.
+
+curl -X DELETE -u onos:rocks \
+  http://127.0.0.1:8181/onos/v1/intents/org.onosproject.sdnassignment/h1-to-h2-bw

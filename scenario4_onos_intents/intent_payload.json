@@ -1,0 +1,22 @@
+{
+  "type": "PointToPointIntent",
+  "appId": "org.onosproject.sdnassignment",
+  "key": "h1-to-h2-bw",
+  "ingressPoint": { "deviceId": "of:0000000000000001", "port": 1 },
+  "egressPoint": { "deviceId": "of:0000000000000003", "port": 1 },
+  "selector": {
+    "criteria": [
+      { "type": "ETH_DST", "mac": "00:00:00:00:00:02" },
+      { "type": "ETH_SRC", "mac": "00:00:00:00:00:01" }
+    ]
+  },
+  "treatment": {
+    "instructions": [
+      { "type": "L2MODIFICATION", "subtype": "ETH_DST", "mac": "00:00:00:00:00:02" }
+    ]
+  },
+  "constraints": [
+    { "type": "BandwidthConstraint", "bandwidth": 100.0 },
+    { "type": "LinkTypeConstraint", "types": ["DIRECT"] }
+  ]
+}
